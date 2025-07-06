@@ -3,10 +3,27 @@
 [📑 Paper](https://arxiv.org/abs/2507.02768) | [👩‍💻 Github](https://github.com/kehanlu/DeSTA2.5-Audio) | [🤗 Model](https://huggingface.co/collections/DeSTA-ntu/desta25-audio-686a6b9e71afd92e1dd87486) 
 
 **DeSTA2.5-Audio: Toward General-Purpose Large Audio Language Model with Self-Generated Cross-Modal Alignment**
+> **Self-generated data is what you need for developing general-purpose LALMs!**
+
+- 🧪 **A new training framework** ([read the paper](https://arxiv.org/abs/2507.02768))  
+  - Highly scalable and efficient without task-specific instruction-tuning data  
+  - Preserves language ability and avoids catastrophic forgetting  
+  - Comprehensive studies on data quality in LALM development  
+- 📦 **Open resources for the community**  
+  - Model checkpoints and Training scripts
+  - DeSTA-AQA5M dataset (5M audio-text pairs from 7,000 hours of audio)  
+
+
+
+![](https://github.com/user-attachments/assets/a5a7eb90-0926-4ee8-8bdf-79dadca8ec96)
+
+
 
 ## ✨ News
 - 🚧 Coming soon! Dataset(DeSTA-AQA5M), training and data construction script.
 - 2025/07/03 DeSTA2.5-Audio paper is now available on arXiv. [📑 Paper](https://arxiv.org/abs/2507.02768)
+
+
 
 
 ## 🚀Quickstart
