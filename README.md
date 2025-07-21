@@ -1,6 +1,6 @@
 # DeSTA2.5-Audio
 
-[📑 Paper](https://arxiv.org/abs/2507.02768) | [👩‍💻 Github](https://github.com/kehanlu/DeSTA2.5-Audio) | [🤗 Model](https://huggingface.co/collections/DeSTA-ntu/desta25-audio-686a6b9e71afd92e1dd87486) 
+[📑 Paper](https://arxiv.org/abs/2507.02768) | [👩‍💻 Github](https://github.com/kehanlu/DeSTA2.5-Audio) | [🤗 Model](https://huggingface.co/collections/DeSTA-ntu/desta25-audio-686a6b9e71afd92e1dd87486) | [🤗 Dataset](https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct)
 
 **DeSTA2.5-Audio: Toward General-Purpose Large Audio Language Model with Self-Generated Cross-Modal Alignment**
 > **Self-generated data is what you need for developing general-purpose LALMs!**
@@ -20,9 +20,11 @@
 
 
 
-## ✨ News
-- 🚧 Coming soon! Dataset(DeSTA-AQA5M), training and data construction script.
-- 2025/07/03 DeSTA2.5-Audio paper is now available on arXiv. [📑 Paper](https://arxiv.org/abs/2507.02768)
+## ✨ News / Change logs
+- 🚧 *Coming soon*: Training and data construction script.
+- 2025/07/21: Released **DeSTA-AQA-5M** dataset! [📘 Dataset README](https://github.com/kehanlu/DeSTA2.5-Audio/blob/main/docs/dataset.md) [🤗 DeSTA-AQA5M](https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct)
+- 2025/07/10: Inference code and model checkpoints are live! [🤗 DeSTA2.5-Audio](https://huggingface.co/collections/DeSTA-ntu/desta25-audio-686a6b9e71afd92e1dd87486)
+- 2025/07/03: DeSTA2.5-Audio paper is on arXiv! [📄 arXiv:2507.02768](https://arxiv.org/abs/2507.02768)
 
 
 
@@ -36,7 +38,7 @@ cd DeSTA2.5-Audio
 pip install -e .
 ```
 
-### Inference
+### Basic Usage
 ```python
 from desta import DeSTA25AudioModel
 
@@ -71,12 +73,15 @@ outputs = model.generate(
 print(outputs.text)
 ```
 
-
+## Dataset
+See [docs/dataset.md](docs/dataset.md) for more details.
+|         | Response Generated From | HuggingFace ID                                                                                                                     | Preview                                                                                      |
+| ----------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| DeSTA-AQA5M | Llama3.1-8B-Instruct    | [DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct](https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct) | [🔍](https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct/viewer) |
 
 ## Training & Finetuning
 
 🚧 Coming soon!
-- We will release DeSTA-AQA5M.
 - We will release the data construction script and training script.
 
 
