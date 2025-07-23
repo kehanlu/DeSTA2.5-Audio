@@ -15,7 +15,7 @@
 
 
 ## ✨ News / Change logs
-- 🚧 *Coming soon*: data construction script, detailed tutorials
+- 🚧 *Coming soon*: vLLM-based data construction script, detailed finetuning tutorials
 - 2025/07/23: Released **training scripts**. Now you can train your own DeSTA-Audio. [📘 Training README](docs/train.md)
 - 2025/07/21: Released **DeSTA-AQA-5M** dataset! [📘 Dataset README](docs/dataset.md) [🤗 DeSTA-AQA5M](https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct)
 - 2025/07/10: Inference code and model checkpoints are live! [🤗 DeSTA2.5-Audio](https://huggingface.co/collections/DeSTA-ntu/desta25-audio-686a6b9e71afd92e1dd87486)
@@ -92,11 +92,6 @@ See [docs/train.md](docs/train.md) for more details.
 ```bash
 bash example/train/train_example.sh
 ```
-
-## 🚧 Coming soon!
-- Finetune DeSTA2.5-Audio with your own data
-- vLLM-based data construction script
-
 
 ## 📚 Citation
 ```bibtex
