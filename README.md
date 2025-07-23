@@ -14,7 +14,7 @@
   - DeSTA-AQA5M dataset (5M audio-text pairs from 7,000 hours of audio)  
 
 
-## ✨ News / Change logs
+## ✨ Some News / Change logs
 - 🚧 *Coming soon*: vLLM-based data construction script, detailed finetuning tutorials
 - 2025/07/23: Released **training scripts**. Now you can train your own DeSTA-Audio. [📘 Training README](docs/train.md)
 - 2025/07/21: Released **DeSTA-AQA-5M** dataset! [📘 Dataset README](docs/dataset.md) [🤗 DeSTA-AQA5M](https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct)
