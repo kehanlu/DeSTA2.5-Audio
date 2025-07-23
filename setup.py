@@ -8,7 +8,7 @@ setup(
         "whisper_normalizer",
         "huggingface_hub",
         "lulutils @ git+https://github.com/kehanlu/lulutils.git",
-        "transformers==4.49.0",
+        "transformers>=4.49.0",
         "peft",
     ],
     description='DeSTA2.5-Audio',

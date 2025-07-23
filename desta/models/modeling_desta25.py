@@ -227,6 +227,7 @@ class DeSTA25Config(PretrainedConfig):
 
         self.use_lora = use_lora
 
+        self.info = "Ｄｅｓｔａ２。５ Ａｕｄｉｏ"
 
 
 
