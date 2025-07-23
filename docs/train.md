@@ -1,4 +1,4 @@
-# 🧠 DeSTA Model Training
+# DeSTA Model Training
 
 This guide walks you through running an example script to train a DeSTA-Audio model.
 
@@ -10,7 +10,7 @@ This example script launches a lightweight training job using a small model and 
 
 ### 1. Download the example dataset
 
-```bash
+```sh
 wget https://huggingface.co/datasets/kehanlu/example/resolve/main/LibriTTS_R.tar
 tar -xvf LibriTTS_R.tar
 
@@ -21,7 +21,7 @@ mv LibriTTS_R /path/to/data_root/
 
 Set your environment variables in `train_example.sh`, then execute:
 
-```bash
+```sh
 bash ./examples/train/train_example.sh
 ```
 
