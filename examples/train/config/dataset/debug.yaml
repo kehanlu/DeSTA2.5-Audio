@@ -1,0 +1,27 @@
+train_ds: 
+  data_root: ???
+  manifest_filepaths: [
+    "https://huggingface.co/datasets/kehanlu/example/resolve/main/debug_train.jsonl",
+  ]
+
+  batch_sampler: null
+  max_seq_length: 300
+  batch_size: 4
+  shuffle: True
+  pin_memory: True
+  num_workers: 4
+  drop_last: True
+  return_seed: False
+  answer_shift: 0
+
+validation_ds:
+  batch_sampler: null
+  data_root: ???
+  manifest_filepaths: ["https://huggingface.co/datasets/kehanlu/example/resolve/main/debug_train.jsonl"]
+  max_seq_length: 300
+  batch_size: 4
+  shuffle: False
+  pin_memory: True
+  num_workers: 0
+  drop_last: True
+  return_seed: False
