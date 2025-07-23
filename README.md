@@ -87,7 +87,7 @@ See [docs/dataset.md](docs/dataset.md) for more details.
 
 ## 🚆 Training & Finetuning
 
-See [docs/train.md](doc/train.md) for more details.
+See [docs/train.md](docs/train.md) for more details.
 
 ```bash
 bash example/train/train_example.sh
