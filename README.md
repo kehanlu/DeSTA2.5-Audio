@@ -1,4 +1,4 @@
-# DeSTA2.5-Audio
+![](https://github.com/user-attachments/assets/caf87d07-e8c3-48c9-814f-1d7dc83b4e50)
 
 [📑 Paper](https://arxiv.org/abs/2507.02768) | [👩‍💻 Github](https://github.com/kehanlu/DeSTA2.5-Audio) | [🤗 Model](https://huggingface.co/collections/DeSTA-ntu/desta25-audio-686a6b9e71afd92e1dd87486) | [🤗 Dataset](https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct)
 
@@ -14,19 +14,25 @@
   - DeSTA-AQA5M dataset (5M audio-text pairs from 7,000 hours of audio)  
 
 
-
-![](https://github.com/user-attachments/assets/f89dce86-2942-4644-aee5-a40ab4129328)
-
-
-
-
 ## ✨ News / Change logs
-- 🚧 *Coming soon*: Training and data construction script.
-- 2025/07/21: Released **DeSTA-AQA-5M** dataset! [📘 Dataset README](https://github.com/kehanlu/DeSTA2.5-Audio/blob/main/docs/dataset.md) [🤗 DeSTA-AQA5M](https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct)
+- 🚧 *Coming soon*: data construction script, detailed tutorials
+- 2025/07/23: Released **training scripts**. Now you can train your own DeSTA-Audio. [📘 Training README](docs/train.md)
+- 2025/07/21: Released **DeSTA-AQA-5M** dataset! [📘 Dataset README](docs/dataset.md) [🤗 DeSTA-AQA5M](https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct)
 - 2025/07/10: Inference code and model checkpoints are live! [🤗 DeSTA2.5-Audio](https://huggingface.co/collections/DeSTA-ntu/desta25-audio-686a6b9e71afd92e1dd87486)
 - 2025/07/03: DeSTA2.5-Audio paper is on arXiv! [📄 arXiv:2507.02768](https://arxiv.org/abs/2507.02768)
 
+## 📄 Documents
 
+| Document       | Description                          |
+|----------------|--------------------------------------|
+| [Quickstart](#quickstart) | Quickly set up and run the DeSTA-Audio model. | 
+| [doc/train.md](doc/train.md)    | Instructions and scripts for training the DeSTA-Audio model. |
+| [doc/dataset.md](doc/dataset.md)  | Information about DeSTA-AQA5M           |
+
+
+## 🧐 Architecture
+
+![](https://github.com/user-attachments/assets/f89dce86-2942-4644-aee5-a40ab4129328)
 
 
 ## 🚀Quickstart
@@ -73,16 +79,23 @@ outputs = model.generate(
 print(outputs.text)
 ```
 
-## Dataset
+## 📂 Dataset
 See [docs/dataset.md](docs/dataset.md) for more details.
 |         | Response Generated From | HuggingFace ID                                                                                                                     | Preview                                                                                      |
 | ----------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
 | DeSTA-AQA5M | Llama3.1-8B-Instruct    | [DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct](https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct) | [🔍](https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct/viewer) |
 
-## Training & Finetuning
+## 🚆 Training & Finetuning
 
-🚧 Coming soon!
-- We will release the data construction script and training script.
+See [doc/train.md](doc/train.md) for more details.
+
+```bash
+bash example/train/train_example.sh
+```
+
+## 🚧 Coming soon!
+- Finetune DeSTA2.5-Audio with your own data
+- vLLM-based data construction script
 
 
 ## 📚 Citation

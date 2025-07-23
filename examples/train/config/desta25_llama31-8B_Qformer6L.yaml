@@ -1,0 +1,63 @@
+hydra:
+  run:
+    dir: ${exp_dir}
+
+
+project: a100
+name: desta25
+exp_dir: ???
+
+resume_from_checkpoint: null
+init_from_pretrained_weights: null
+
+ptl_module: default
+
+wandb:
+  project: desta25
+  log_model: all
+
+trainer:
+  devices: 8 # 0 for CPU, or list of the GPUs to use e.g. [0, 1] or [0]
+  num_nodes: 1
+  max_epochs: 5
+  max_steps: -1 # precedence over max_epochs
+  accumulate_grad_batches: 1 # accumulates grads every k batches
+  gradient_clip_val: 1.0
+  precision: "bf16-mixed" #16 # should be set to 16 for O1 and O2 to enable the AMP.
+  accelerator: gpu
+  log_every_n_steps: 10  # interval of logging.
+  val_check_interval: 0.5  # set to 0.25 to check 4 times per epoch, or an int for number of iterations
+  num_sanity_val_steps: 0 # number of steps to perform validation steps for sanity check the validation process before starting the training, setting to 0 disables it
+  enable_checkpointing: True
+
+
+model:
+  llm:
+    model_id: DeSTA-ntu/Llama-3.1-8B-Instruct
+    freeze: True
+
+  encoder:
+    model_id: openai/whisper-large-v3
+    freeze: True
+
+  connector:
+    mode: qformer_1
+    prompt_size: 64
+    num_hidden_layers: 6
+
+  placeholder_token: "<|reserved_special_token_87|>" # need to be in LLM embedding table, but will be replaced by audio embedding
+  audio_locator: "<|AUDIO|>" # newly created token
+
+  generation_kwargs:
+    max_new_tokens: 192
+    do_sample: False
+    temperature: 1
+    top_p: 1
+
+optim:
+  lr: 1e-4
+  betas: [0.9, 0.98]
+  weight_decay: 0.01
+
+  sched:
+    warmup_steps: 5000

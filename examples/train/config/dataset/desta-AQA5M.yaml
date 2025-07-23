@@ -1,0 +1,47 @@
+train_ds: 
+    data_root: "/home/jovyan/workspace/data/audios"
+      #manifest_filepaths: ["https://huggingface.co/datasets/Morioh/shelf/resolve/manifest/manifest3/250317_llama32_ds.debug.jsonl"]
+    manifest_filepaths: [
+      "https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct/resolve/main/audio.0.jsonl",
+      "https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct/resolve/main/audio.1.jsonl",
+      "https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct/resolve/main/audio.2.jsonl",
+      "https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct/resolve/main/audio.3.jsonl",
+      "https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct/resolve/main/audio.4.jsonl",
+      "https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct/resolve/main/audio.5.jsonl",
+      "https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct/resolve/main/audio.6.jsonl",
+      "https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct/resolve/main/audio.7.jsonl",
+      "https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct/resolve/main/audio.8.jsonl",
+      "https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct/resolve/main/audio.9.jsonl",
+      "https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct/resolve/main/speech.0.jsonl",
+      "https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct/resolve/main/speech.1.jsonl",
+      "https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct/resolve/main/speech.2.jsonl",
+      "https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct/resolve/main/speech.3.jsonl",
+      "https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct/resolve/main/speech.4.jsonl",
+      "https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct/resolve/main/speech.5.jsonl",
+      "https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct/resolve/main/speech.6.jsonl",
+      "https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct/resolve/main/speech.7.jsonl",
+      "https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct/resolve/main/speech.8.jsonl",
+      "https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct/resolve/main/speech.9.jsonl",
+    ]
+
+    batch_sampler: null
+    max_seq_length: 300
+    batch_size: 12
+    shuffle: True
+    pin_memory: True
+    num_workers: 4
+    drop_last: True
+    return_seed: False
+    answer_shift: 0
+
+  validation_ds:
+    batch_sampler: null
+    data_root: "/home/jovyan/workspace/data/audios"
+    manifest_filepaths: ["https://huggingface.co/datasets/Morioh/shelf/resolve/661a99863de423d919761aff2809d32ba85d29e7/eval_manifest/dynamic-superb-test.val.jsonl"]
+    max_seq_length: 512
+    batch_size: 4
+    shuffle: False
+    pin_memory: True
+    num_workers: 0
+    drop_last: True
+    return_seed: False
