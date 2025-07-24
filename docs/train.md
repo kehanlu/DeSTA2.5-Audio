@@ -8,7 +8,7 @@ This guide walks you through running an example script to train a DeSTA-Audio mo
 
 This example script launches a lightweight training job using a small model and a sample dataset.
 
-### 1. Download the example dataset
+### 1. Download the example audio files
 
 ```sh
 wget https://huggingface.co/datasets/kehanlu/example/resolve/main/LibriTTS_R.tar
