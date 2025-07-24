@@ -1,6 +1,5 @@
 train_ds: 
     data_root: "/home/jovyan/workspace/data/audios"
-      #manifest_filepaths: ["https://huggingface.co/datasets/Morioh/shelf/resolve/manifest/manifest3/250317_llama32_ds.debug.jsonl"]
     manifest_filepaths: [
       "https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct/resolve/main/audio.0.jsonl",
       "https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct/resolve/main/audio.1.jsonl",
@@ -37,7 +36,7 @@ train_ds:
   validation_ds:
     batch_sampler: null
     data_root: "/home/jovyan/workspace/data/audios"
-    manifest_filepaths: ["https://huggingface.co/datasets/Morioh/shelf/resolve/661a99863de423d919761aff2809d32ba85d29e7/eval_manifest/dynamic-superb-test.val.jsonl"]
+    manifest_filepaths: ["/home/jovyan/workspace/eval_manifest/val.jsonl"]
     max_seq_length: 512
     batch_size: 4
     shuffle: False
