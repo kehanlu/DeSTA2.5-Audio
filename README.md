@@ -28,6 +28,7 @@
 | [Quickstart](#quickstart) | Quickly set up and run the DeSTA-Audio model. | 
 | [docs/train.md](docs/train.md)    | Instructions and scripts for training the DeSTA-Audio model. |
 | [docs/dataset.md](docs/dataset.md)  | Information about DeSTA-AQA5M           |
+| [docs/evaluation_tips.md](docs/evaluation_tips.md) | Tips for evaluating DeSTA2.5-Audio |
 
 
 ## 🧐 Architecture
