@@ -12,6 +12,7 @@ from transformers import AutoTokenizer, AutoProcessor
 from transformers import PretrainedConfig, PreTrainedModel, AutoModelForCausalLM, AutoConfig
 from transformers.models.bert.modeling_bert import BertEncoder
 from transformers import WhisperForConditionalGeneration, BertConfig
+from safetensors.torch import load_file
 
 
 def _prepare_audio_context_and_start_positions(
@@ -72,6 +73,7 @@ class QformerConnector(nn.Module):
             qformer_config.hidden_size = self.config.encoder_config.d_model
             qformer_config.add_cross_attention = True
             qformer_config.is_decoder = True
+            qformer_config._attn_implementation = "eager"
 
             self.qformer = BertEncoder(qformer_config)
             self.proj = nn.Sequential(
@@ -117,8 +119,7 @@ class WhisperPerception(nn.Module):
         super().__init__()
         self.config = config
         self.whisper = WhisperForConditionalGeneration.from_pretrained(
-            self.config.encoder_model_id, cache_dir=os.getenv("HF_HOME")
-        )
+            self.config.encoder_model_id, cache_dir=os.getenv("HF_HOME"))
 
         self.connector = QformerConnector(config)
 
@@ -391,6 +392,10 @@ class DeSTA25AudioModel(PreTrainedModel):
             batch_transcription_ids=batch_transcription_ids, 
             batch_start_positions=batch_start_positions
         )
+
+        if do_sample is False:
+            top_p = None
+            temperature = None
         
         generated_ids = self.llm_model.generate(
             inputs_embeds=inputs_embeds,
@@ -675,3 +680,28 @@ class DeSTA25AudioModel(PreTrainedModel):
                 audios=[],
                 generated_ids=generated_ids_list
             )
+
+    @classmethod
+    def from_pretrained(cls, pretrained_model_name_or_path, *args, **kwargs):
+        """
+        Custom from_pretrained method to load pretrained LLM and Whisper model.
+        model.safetensors only contains trainable parameters from DeSTA2.5-Audio.
+        """
+        
+        cache_dir = kwargs.get("cache_dir", os.getenv("HF_HOME"))
+
+        config = cls.config_class.from_pretrained(pretrained_model_name_or_path, cache_dir=cache_dir)
+        model = cls(config)
+        
+        if os.path.isdir(pretrained_model_name_or_path):
+            model.load_state_dict(
+                load_file(os.path.join(pretrained_model_name_or_path, "model.safetensors")), strict=False
+            )
+        else:
+            from huggingface_hub import hf_hub_download
+            path = hf_hub_download(repo_id=pretrained_model_name_or_path, filename="model.safetensors", cache_dir=cache_dir)
+            model.load_state_dict(
+                load_file(path), strict=False
+            )
+
+        return model
