@@ -9,16 +9,17 @@ def parse_args():
     parser.add_argument("-i", "--input_path", type=str)
     parser.add_argument("--model_id", type=str)
     parser.add_argument("--data_root", type=str)
+    parser.add_argument("--output_path", "-o", type=str, default="results")
 
     return parser.parse_args()
 
 def main(args):
 
-    if args.model_id == "desta25":
-        model = DeSTA25AudioModel.from_pretrained("DeSTA-ntu/DeSTA2.5-Audio-Llama-3.1-8B")
 
-        model.to("cuda")
-        model.eval()
+    model = DeSTA25AudioModel.from_pretrained("DeSTA-ntu/DeSTA2.5-Audio-Llama-3.1-8B")
+
+    model.to("cuda")
+    model.eval()
             
 
     # load MMAU data
@@ -27,6 +28,7 @@ def main(args):
 
     # inference
     results = []
+
     for item in tqdm(data):
         audio_path = os.path.join(
             args.data_root,
@@ -34,11 +36,11 @@ def main(args):
         )
         print(audio_path)
 
-        system_prompt = "Focus on the audio clips and instructions. Choose one of the options without any explanation."
+    
+        system_prompt = "Focus on the audio clips and instructions. Put your answer in the format \"The correct answer is: \"___\" \"."
         
         question = f"{item['question']} "
-        question += "Choose one of the following options: "
-
+        question += "Choose from the following options: "
         # use "or" for last option
         for i, option in enumerate(item["choices"]):
             question += f"\"{option}\""
@@ -48,6 +50,8 @@ def main(args):
                 question += ", "
         
         question = question.rstrip(", ")
+        
+        print(question)
 
         messages = [
             {'role': 'system', 'content': system_prompt}, 
@@ -58,16 +62,17 @@ def main(args):
         ]
         
         outputs = model.generate(messages=messages, max_new_tokens=512, do_sample=False)
-
         response = outputs.text[0]
 
+        item["messages"] = messages
         item["model_output"] = response
-        results.append(item)
+        item["model_prediction"] = response.replace("The correct answer is: ", "").strip()
 
+        results.append(item)
 
     # save results
     os.makedirs("results", exist_ok=True)
-    with open(f"results/results@{args.model_id}.json", "w") as f:
+    with open(f"results/{args.output_path}.json", "w") as f:
         json.dump(results, f, indent=2)
 
 

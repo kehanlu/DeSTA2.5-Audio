@@ -56,7 +56,7 @@ if __name__ == "__main__":
     # Here is the new dict for sub-category metrics
     subcat_metrics = {}
 
-    output_key = 'model_output' # The key that contains model output
+    output_key = 'model_prediction' # The key that contains model output
     no_pred_count = 0
     matched_outputs = []
     new_data = []
@@ -132,3 +132,6 @@ if __name__ == "__main__":
     print(f"Total Accuracy: {(corr/total) * 100:.2f}% over {total} samples")
     print("*"*30)
     print(f"No prediction count: {no_pred_count}")
+
+    with open(f"{args.input.replace('.json', '_results.json')}", "w") as f:
+        json.dump(new_data, f, indent=4)
