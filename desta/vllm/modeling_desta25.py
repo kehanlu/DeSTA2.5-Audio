@@ -81,6 +81,11 @@ DeSTA25AudioInputs: TypeAlias = dict
 
 # === Processing Classes === #
 
+# Module-level cache for processors to avoid repeated loading
+_PROCESSOR_CACHE: dict[str, object] = {}
+_FEATURE_EXTRACTOR_CACHE: dict[str, WhisperFeatureExtractor] = {}
+
+
 class DeSTA25ProcessingInfo(BaseProcessingInfo):
     """Processing info for DeSTA25 audio model."""
 
@@ -90,17 +95,28 @@ class DeSTA25ProcessingInfo(BaseProcessingInfo):
     def get_hf_processor(self, **kwargs):
         config = self.get_hf_config()
         encoder_model_id = getattr(config, "encoder_model_id", "openai/whisper-large-v3")
-        return AutoProcessor.from_pretrained(
-            encoder_model_id,
-            cache_dir=os.getenv("HF_HOME"),
-            **kwargs,
-        )
+
+        # Use cached processor if available (ignore kwargs for cache key)
+        if encoder_model_id not in _PROCESSOR_CACHE:
+            _PROCESSOR_CACHE[encoder_model_id] = AutoProcessor.from_pretrained(
+                encoder_model_id,
+                cache_dir=os.getenv("HF_HOME"),
+                **kwargs,
+            )
+        return _PROCESSOR_CACHE[encoder_model_id]
 
     def get_feature_extractor(self, **kwargs) -> WhisperFeatureExtractor:
-        hf_processor = self.get_hf_processor(**kwargs)
-        if hasattr(hf_processor, "feature_extractor"):
-            return hf_processor.feature_extractor
-        return hf_processor
+        config = self.get_hf_config()
+        encoder_model_id = getattr(config, "encoder_model_id", "openai/whisper-large-v3")
+
+        # Use cached feature extractor if available
+        if encoder_model_id not in _FEATURE_EXTRACTOR_CACHE:
+            hf_processor = self.get_hf_processor(**kwargs)
+            if hasattr(hf_processor, "feature_extractor"):
+                _FEATURE_EXTRACTOR_CACHE[encoder_model_id] = hf_processor.feature_extractor
+            else:
+                _FEATURE_EXTRACTOR_CACHE[encoder_model_id] = hf_processor
+        return _FEATURE_EXTRACTOR_CACHE[encoder_model_id]
 
     def get_target_channels(self) -> int:
         """DeSTA uses mono audio."""
@@ -325,6 +341,17 @@ class DeSTA25ForConditionalGeneration(nn.Module, SupportsMultiModal, SupportsPP)
             self.language_model.make_empty_intermediate_tensors
         )
 
+        # Cache encoder dtype/device to avoid repeated lookups during inference
+        self._encoder_dtype: torch.dtype | None = None
+        self._encoder_device: torch.device | None = None
+
+    def _get_encoder_dtype_device(self) -> tuple[torch.dtype, torch.device]:
+        """Get cached encoder dtype and device."""
+        if self._encoder_dtype is None:
+            self._encoder_dtype = self.audio_tower.whisper.model.encoder.conv1.weight.dtype
+            self._encoder_device = self.audio_tower.whisper.model.encoder.conv1.weight.device
+        return self._encoder_dtype, self._encoder_device
+
     def get_mm_mapping(self) -> MultiModelKeys:
         """Get module prefix mapping for multimodal models."""
         return MultiModelKeys.from_string_field(
@@ -336,20 +363,18 @@ class DeSTA25ForConditionalGeneration(nn.Module, SupportsMultiModal, SupportsPP)
     def _parse_and_validate_audio_input(
         self, **kwargs: object
     ) -> DeSTA25AudioInputs | None:
-        audio_features = kwargs.pop("audio_features", None)
-        audio_embeds = kwargs.pop("audio_embeds", None)
-
-        if audio_features is None and audio_embeds is None:
-            return None
-
+        # Use .get() instead of .pop() to avoid dict modification overhead
+        audio_embeds = kwargs.get("audio_embeds")
         if audio_embeds is not None:
             return {"type": "audio_embeds", "data": audio_embeds}
 
+        audio_features = kwargs.get("audio_features")
         if audio_features is not None:
             return {"type": "audio_features", "data": audio_features}
 
-        raise AssertionError("This line should be unreachable.")
+        return None
 
+    @torch.inference_mode()
     def _process_audio_input(
         self, audio_input: DeSTA25AudioInputs
     ) -> NestedTensors | tuple[torch.Tensor, ...]:
@@ -362,18 +387,16 @@ class DeSTA25ForConditionalGeneration(nn.Module, SupportsMultiModal, SupportsPP)
         if isinstance(audio_features, list):
             audio_features = torch.stack(audio_features)
 
-        # Convert to the same dtype as the Whisper encoder
-        encoder_dtype = self.audio_tower.whisper.model.encoder.conv1.weight.dtype
-        encoder_device = self.audio_tower.whisper.model.encoder.conv1.weight.device
+        # Use cached dtype/device to avoid repeated attribute lookups
+        encoder_dtype, encoder_device = self._get_encoder_dtype_device()
         audio_features = audio_features.to(dtype=encoder_dtype, device=encoder_device)
 
         # Use original WhisperPerception forward
         # It returns (audio_embeddings, feature_lengths)
         audio_embeddings, _ = self.audio_tower(input_features=audio_features)
 
-        # Return as tuple of individual embeddings
-        batch_size = audio_embeddings.size(0)
-        return tuple(audio_embeddings[i] for i in range(batch_size))
+        # Return as tuple of individual embeddings (unbind is faster than indexing)
+        return tuple(audio_embeddings.unbind(0))
 
     def get_language_model(self) -> torch.nn.Module:
         return self.language_model
