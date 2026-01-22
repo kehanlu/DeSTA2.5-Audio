@@ -51,6 +51,7 @@ from desta.vllm.modeling_desta25 import (
     DeSTA25MultiModalProcessor,
     DeSTA25DummyInputsBuilder,
 )
+from desta.vllm.asr_engine import ASREngine, get_asr_engine, clear_asr_engines
 
 # Register the model with vLLM's model registry
 from vllm.model_executor.models.registry import ModelRegistry
@@ -71,4 +72,7 @@ __all__ = [
     "DeSTA25ProcessingInfo",
     "DeSTA25MultiModalProcessor",
     "DeSTA25DummyInputsBuilder",
+    "ASREngine",
+    "get_asr_engine",
+    "clear_asr_engines",
 ]

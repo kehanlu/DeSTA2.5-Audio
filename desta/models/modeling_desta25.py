@@ -53,7 +53,8 @@ class QformerConnector(nn.Module):
             self.config.target_layer_ids = [2, 5, 8, 11]
         elif self.config.encoder_model_id == "openai/whisper-tiny":
             self.config.target_layer_ids = [0, 1, 2, 3]
-        elif self.config.encoder_model_id == "openai/whisper-large-v3":
+        elif self.config.encoder_model_id in ("openai/whisper-large-v3", "distil-whisper/distil-large-v3"):
+            # distil-whisper has identical encoder to openai/whisper-large-v3
             self.config.target_layer_ids = [7, 15, 23, 31]
         else:
             raise NotImplementedError(f"model_id {self.config.encoder_model_id} not implemented")

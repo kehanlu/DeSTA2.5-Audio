@@ -1,98 +1,142 @@
 #!/usr/bin/env python3
 """
-DeSTA2.5-Audio Offline Inference with vLLM
-
-This script demonstrates how to run offline inference with DeSTA2.5-Audio
-using vLLM for high-throughput audio-language processing.
-
-Usage:
-    python offline_inference.py --audio_path /path/to/audio.wav
+MMAU Evaluation with DeSTA2.5-Audio using vLLM backend.
 """
 
 import argparse
-import torchaudio
+import json
+import os
+import sys
+
+# Add project root to path
+sys.path.insert(0, "/mnt/data/khlu/DeSTA2.5-Audio-vllm")
+
+import librosa
+from tqdm import tqdm
+from transformers import AutoTokenizer
 from vllm import LLM, SamplingParams
 
 # Register DeSTA25 model with vLLM
-import desta.vllm  # noqa: F401
+import desta.vllm
+# from desta.vllm import print_timing_summary
+
+TARGET_SR = 16000
+# AUDIO_LOCATOR = "<|AUDIO|>"
+AUDIO_LOCATOR = "<|reserved_special_token_87|>"
 
 
-def main():
-    parser = argparse.ArgumentParser(description="DeSTA2.5-Audio vLLM Inference")
-    parser.add_argument(
-        "--model",
-        type=str,
-        default="DeSTA-ntu/DeSTA2.5-Audio-Llama-3.1-8B",
-        help="Model name or path",
-    )
-    parser.add_argument(
-        "--audio_path",
-        type=str,
-        required=True,
-        help="Path to audio file",
-    )
-    parser.add_argument(
-        "--prompt",
-        type=str,
-        default="What do you hear in this audio? <|AUDIO|>",
-        help="Prompt with <|AUDIO|> placeholder",
-    )
-    parser.add_argument(
-        "--max_tokens",
-        type=int,
-        default=512,
-        help="Maximum number of tokens to generate",
-    )
-    parser.add_argument(
-        "--temperature",
-        type=float,
-        default=0.7,
-        help="Sampling temperature",
-    )
-    args = parser.parse_args()
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model_id", type=str, default="DeSTA-ntu/DeSTA2.5-Audio-Llama-3.1-8B")
+    return parser.parse_args()
 
-    # Load audio
-    print(f"Loading audio from: {args.audio_path}")
-    audio, sr = torchaudio.load(args.audio_path)
-    print(f"Audio shape: {audio.shape}, Sample rate: {sr}")
 
-    # Convert to mono if stereo
-    if audio.shape[0] > 1:
-        audio = audio.mean(dim=0, keepdim=True)
-        print(f"Converted to mono: {audio.shape}")
+def load_audio(path):
+    """Load audio file with resampling to 16kHz mono."""
+    audio, sr = librosa.load(path, sr=TARGET_SR, mono=True)
+    return audio, sr
+
+
+def main(args):
+    # Load tokenizer for chat template
 
     # Initialize vLLM
-    print(f"Loading model: {args.model}")
+    print(f"Initializing vLLM with {args.model_id}...")
     llm = LLM(
-        model=args.model,
+        model=args.model_id,
+        tokenizer="DeSTA-ntu/Llama-3.1-8B-Instruct",
         trust_remote_code=True,
+        max_model_len=4096,
     )
 
-    # Set sampling parameters
+    tokenizer = llm.get_tokenizer()
+
     sampling_params = SamplingParams(
-        max_tokens=args.max_tokens,
-        temperature=args.temperature,
+        max_tokens=512,
+        temperature=0.0,  # Deterministic for evaluation
     )
 
-    # Prepare input
-    inputs = {
-        "prompt": args.prompt,
-        "multi_modal_data": {"audio": (audio.numpy(), sr)},
-    }
+    
+    def prepare_prompt(messages, audio_filepaths=None):
+        prompt = tokenizer.apply_chat_template(
+            messages, tokenize=False,add_generation_prompt=True,)
 
-    # Generate
-    print("Generating response...")
-    outputs = llm.generate([inputs], sampling_params=sampling_params)
+        if audio_filepaths is None:
+            return {
+                "prompt": prompt,
+            }
+        else:
+            audios = []
+            for audio_filepath in audio_filepaths:
+                audio, sr = load_audio(audio_filepath)
+                audios.append((audio, sr))
 
-    # Print results
-    for output in outputs:
-        print("\n" + "=" * 50)
-        print("Prompt:", output.prompt)
-        print("=" * 50)
-        for completion in output.outputs:
-            print("Response:", completion.text)
-            print("=" * 50)
+            return {
+                "prompt": prompt,
+                "multi_modal_data": {"audio": audios},
+            }
+    
+    vllm_inputs = []
+
+    ### Example 1
+    messages = [
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": f"Hello, how are you?"},
+    ]
+    vllm_inputs.append(prepare_prompt(messages))
+
+    ### Example 2
+    messages = [
+        {"role": "system", "content": "Focus on the audio clips and instructions."},
+        {"role": "user", "content": f"{AUDIO_LOCATOR}\n\nDescribe the audio."},
+    ]
+    vllm_inputs.append(prepare_prompt(messages, ["/root/lab/DeSTA2.5-Audio-vllm/assets/audios/dog10.wav"]))
+
+    ### Example 2
+    messages = [
+        {"role": "system", "content": "Focus on the audio clips and instructions."},
+        {"role": "user", "content": f"{AUDIO_LOCATOR}\n\nDescribe the audio."},
+    ]
+    vllm_inputs.append(prepare_prompt(messages, ["/root/lab/DeSTA2.5-Audio-vllm/assets/audios/cat14.wav"]))
+
+    ### Example 3
+    messages = [
+        {"role": "system", "content": "Focus on the audio clips and instructions."},
+        {"role": "user", "content": f"{AUDIO_LOCATOR}\n\nDescribe the audio."},
+    ]
+    vllm_inputs.append(prepare_prompt(messages, ["/root/lab/DeSTA2.5-Audio-vllm/assets/audios/72fb5481-73ae-409d-8e16-c94ac48d2ee4.wav"]))
+
+    ### Example 3
+    messages = [
+        {"role": "system", "content": "Focus on these two audio clips and instructions."},
+        {"role": "user", "content": f"Compare the two audio clips.\n\nFirst: {AUDIO_LOCATOR}\n\nSecond: {AUDIO_LOCATOR}.\n\nDescribe them one by one."},
+    ]
+    vllm_inputs.append(prepare_prompt(messages, ["/root/lab/DeSTA2.5-Audio-vllm/assets/audios/dog10.wav", "/root/lab/DeSTA2.5-Audio-vllm/assets/audios/cat14.wav"]))
+
+    # Example 4
+    messages = [
+        {"role": "system", "content": "Focus on the audio clips and instructions."},
+        {"role": "user", "content": f"{AUDIO_LOCATOR}\n\nDescribe the audio in detail."},
+    ]
+    vllm_inputs.append(prepare_prompt(messages, ["/root/lab/DeSTA2.5-Audio-vllm/assets/audios/bf50d3fb-4454-4eea-9336-6acc0e8d34fa.wav"]))
+
+
+    # Example 5
+    messages = [
+        {"role": "system", "content": "Focus on the audio clips and instructions."},
+        {"role": "user", "content": f"{AUDIO_LOCATOR}\n\nDescribe the audio in detail.\n\n{AUDIO_LOCATOR}"},
+    ]
+    vllm_inputs.append(prepare_prompt(messages, ["/root/lab/DeSTA2.5-Audio-vllm/assets/audios/bf50d3fb-4454-4eea-9336-6acc0e8d34fa.wav", "/root/lab/DeSTA2.5-Audio-vllm/assets/audios/72fb5481-73ae-409d-8e16-c94ac48d2ee4.wav"]))
+
+    outputs = llm.generate(vllm_inputs, sampling_params=sampling_params)
+
+    for vllm_input, output in zip(vllm_inputs, outputs):
+        print(tokenizer.decode(output.prompt_token_ids).replace("<|reserved_special_token_87|>"*64, "<|AUDIO|>"))
+        print(f"Output: {output.outputs[0].text}")
+        print("-" * 100)
 
 
 if __name__ == "__main__":
-    main()
+    args = parse_args()
+    main(args)
+    

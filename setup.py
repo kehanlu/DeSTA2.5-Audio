@@ -11,6 +11,7 @@ setup(
         "transformers>=4.49.0",
         "safetensors",
         "peft",
+        "faster-whisper",
     ],
     description='DeSTA2.5-Audio',
     classifiers=[

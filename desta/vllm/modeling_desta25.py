@@ -35,6 +35,7 @@ from vllm.multimodal.processing import (
     BaseProcessingInfo,
     PromptReplacement,
     PromptUpdate,
+    PromptUpdateDetails,
 )
 from vllm.multimodal.profiling import BaseDummyInputsBuilder
 from vllm.sequence import IntermediateTensors
@@ -57,9 +58,11 @@ from desta.models.modeling_desta25 import (
     WhisperPerception,
     QformerConnector,
 )
+from desta.vllm.asr_engine import get_asr_engine, ASREngine
 
-_AUDIO_PLACEHOLDER = "<|AUDIO|>"
+_AUDIO_PLACEHOLDER = "<|reserved_special_token_87|>"
 _DEFAULT_PROMPT_SIZE = 64
+_DEFAULT_MAX_TRANSCRIPTION_TOKENS = 128
 
 
 # === Audio Input Types === #
@@ -125,6 +128,14 @@ class DeSTA25ProcessingInfo(BaseProcessingInfo):
     def get_supported_mm_limits(self) -> Mapping[str, int | None]:
         return {"audio": None}
 
+    def get_asr_engine(self) -> ASREngine:
+        """Get ASR engine (faster-whisper small for CPU, good speed/accuracy balance)."""
+        return get_asr_engine("small")
+
+    def get_llm_tokenizer(self):
+        """Get the LLM tokenizer (same as the main tokenizer)."""
+        return self.get_tokenizer()
+
 
 class DeSTA25DummyInputsBuilder(BaseDummyInputsBuilder[DeSTA25ProcessingInfo]):
     """Builds dummy inputs for profiling."""
@@ -182,21 +193,18 @@ class DeSTA25MultiModalProcessor(BaseMultiModalProcessor[DeSTA25ProcessingInfo])
         mm_kwargs: Mapping[str, object],
         tok_kwargs: Mapping[str, object],
     ) -> BatchFeature:
-        # Don't modify the prompt here - let _get_prompt_updates handle the
-        # <|AUDIO|> -> <|reserved_special_token_87|> * prompt_size replacement
         mm_data = dict(mm_data)
         audios = mm_data.pop("audios", [])
 
-        # Tokenize text (with <|AUDIO|> as-is, vLLM will replace it)
         tokenizer = self.info.get_tokenizer()
-        text_inputs = tokenizer(
-            prompt,
-            return_tensors="pt",
-            add_special_tokens=False,
-            **tok_kwargs,
-        )
 
         if not audios:
+            text_inputs = tokenizer(
+                prompt,
+                return_tensors="pt",
+                add_special_tokens=False,
+                **tok_kwargs,
+            )
             prompt_ids = text_inputs["input_ids"][0].tolist()
             prompt_ids = self._apply_hf_processor_tokens_only(prompt_ids)
             return BatchFeature(dict(input_ids=[prompt_ids]), tensor_type="pt")
@@ -208,6 +216,24 @@ class DeSTA25MultiModalProcessor(BaseMultiModalProcessor[DeSTA25ProcessingInfo])
             sampling_rate=feature_extractor.sampling_rate,
             return_tensors="pt",
         ).input_features
+
+        # Run ASR and insert transcriptions into prompt
+        # Format: <|AUDIO|>{transcription}
+        asr_engine = self.info.get_asr_engine()
+        if asr_engine.is_ready:
+            # Pass raw audio arrays to faster-whisper
+            transcriptions = asr_engine.transcribe(audios)
+
+            mm_kwargs["transcriptions"] = transcriptions
+
+
+        # Tokenize the (possibly modified) prompt
+        text_inputs = tokenizer(
+            prompt,
+            return_tensors="pt",
+            add_special_tokens=False,
+            **tok_kwargs,
+        )
 
         return BatchFeature(
             dict(
@@ -236,23 +262,31 @@ class DeSTA25MultiModalProcessor(BaseMultiModalProcessor[DeSTA25ProcessingInfo])
         config = self.info.get_hf_config()
         prompt_size = getattr(config, "prompt_size", _DEFAULT_PROMPT_SIZE)
 
-        tokenizer = self.info.get_tokenizer()
+        transcriptions = hf_processor_mm_kwargs.get("transcriptions")
 
-        # Get the internal placeholder token that Llama supports
         placeholder_token = getattr(
             config, "placeholder_token", "<|reserved_special_token_87|>"
         )
-        placeholder_id = tokenizer.convert_tokens_to_ids(placeholder_token)
+
 
         def get_replacement_desta(item_idx: int):
-            # Replace <|AUDIO|> with prompt_size placeholder tokens
-            return [placeholder_id] * prompt_size
+            
+            if not transcriptions:
+                transcription = " "
+            else:
+                transcription = transcriptions[item_idx]
+                if transcription == "":
+                    transcription = " "
+
+
+            return PromptUpdateDetails.select_text(
+                seq=f"<start_audio>{placeholder_token * prompt_size}{transcription}<end_audio>",
+                embed_text=_AUDIO_PLACEHOLDER,
+            )
 
         return [
             PromptReplacement(
                 modality="audio",
-                # User-facing placeholder - vLLM finds this in prompt and replaces
-                # with internal Llama-supported tokens
                 target=_AUDIO_PLACEHOLDER,
                 replacement=get_replacement_desta,
             )
@@ -283,7 +317,7 @@ class DeSTA25ForConditionalGeneration(nn.Module, SupportsMultiModal, SupportsPP)
     @classmethod
     def get_placeholder_str(cls, modality: str, i: int) -> str | None:
         if modality.startswith("audio"):
-            return "<|AUDIO|>"
+            return _AUDIO_PLACEHOLDER
         raise ValueError("Only audio modality is supported")
 
     def __init__(self, *, vllm_config: VllmConfig, prefix: str = ""):
@@ -439,4 +473,11 @@ class DeSTA25ForConditionalGeneration(nn.Module, SupportsMultiModal, SupportsPP)
             self,
             ignore_unexpected_prefixes=["audio_tower.whisper."]
         )
-        return loader.load_weights(weights, mapper=self.hf_to_vllm_mapper)
+        loaded = loader.load_weights(weights, mapper=self.hf_to_vllm_mapper)
+
+        # Move audio_tower to same device as language_model
+        # (Whisper was loaded via from_pretrained on CPU, vLLM ignores it)
+        device = next(self.language_model.parameters()).device
+        self.audio_tower.to(device)
+
+        return loaded
