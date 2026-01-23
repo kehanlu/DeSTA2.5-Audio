@@ -31,6 +31,11 @@
 | [docs/evaluation_tips.md](docs/evaluation_tips.md) | Tips for evaluating DeSTA2.5-Audio |
 | [docs/vllm_usage.md](docs/vllm_usage.md) | Usage of DeSTA2.5-Audio with vLLM |
 
+| Document       | Description                          |
+|----------------|--------------------------------------|
+| [MMAU_evaluation.md](examples/evaluation/MMAU-v05.15.25/README.md) | MMAU example code |
+| [MMAR_evaluation.md](examples/evaluation/MMAR/README.md) | MMAR example code |
+
 
 ## 🧐 Architecture
 
