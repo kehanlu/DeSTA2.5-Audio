@@ -6,12 +6,13 @@ setup(
     packages=find_packages(),
     install_requires=[
         "whisper_normalizer",
-        "huggingface_hub==0.34.3",
-        "lulutils @ git+https://github.com/kehanlu/lulutils.git",
+        "huggingface_hub",
+        "lulutils @ https://github.com/kehanlu/lulutils/archive/refs/heads/main.zip",
         "transformers>=4.49.0",
         "safetensors",
+        "librosa",
         "peft",
-        "faster-whisper",
+        "faster-whisper"
     ],
     description='DeSTA2.5-Audio',
     classifiers=[

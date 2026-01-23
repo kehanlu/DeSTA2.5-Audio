@@ -18,7 +18,7 @@ _ASR_ENGINES: dict[str, "ASREngine"] = {}
 class ASREngine:
     """ASR engine using faster-whisper."""
 
-    def __init__(self, model_id: str = "large-v3-turbo"):
+    def __init__(self, model_id: str = "large-v3"):
         self.model_id = model_id
         self._model = None
 
@@ -77,11 +77,11 @@ class ASREngine:
 
         if os.getenv("ENABLE_ASR_DEBUG", "0") == "1":
             print(f"[ASR] Transcriptions: {transcriptions}")
-            
+
         return transcriptions
 
 
-def get_asr_engine(model_id: str = "large-v3-turbo") -> ASREngine:
+def get_asr_engine(model_id: str = "large-v3") -> ASREngine:
     """Get or create ASR engine singleton."""
     if model_id not in _ASR_ENGINES:
         _ASR_ENGINES[model_id] = ASREngine(model_id)

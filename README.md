@@ -15,7 +15,7 @@
 
 
 ## ✨ News / Change logs
-- 🚧 *Coming soon*: vLLM-based data construction script, detailed finetuning tutorials
+- 2026/01/23: Released **vLLM-based inference code**. Now you can use DeSTA2.5-Audio with vLLM for high-throughput inference. [📘 vLLM Usage](docs/vllm_usage.md)
 - 2025/07/23: Released **training scripts**. Now you can train your own DeSTA-Audio. [📘 Training README](docs/train.md)
 - 2025/07/21: Released **DeSTA-AQA-5M** dataset! [📘 Dataset README](docs/dataset.md) [🤗 DeSTA-AQA5M](https://huggingface.co/datasets/DeSTA-ntu/DeSTA-AQA5M-FROM-Llama3.1-8B-Instruct)
 - 2025/07/10: Inference code and model checkpoints are live! [🤗 DeSTA2.5-Audio](https://huggingface.co/collections/DeSTA-ntu/desta25-audio-686a6b9e71afd92e1dd87486)
@@ -29,6 +29,7 @@
 | [docs/train.md](docs/train.md)    | Instructions and scripts for training the DeSTA-Audio model. |
 | [docs/dataset.md](docs/dataset.md)  | Information about DeSTA-AQA5M           |
 | [docs/evaluation_tips.md](docs/evaluation_tips.md) | Tips for evaluating DeSTA2.5-Audio |
+| [docs/vllm_usage.md](docs/vllm_usage.md) | Usage of DeSTA2.5-Audio with vLLM |
 
 
 ## 🧐 Architecture
@@ -72,13 +73,57 @@ messages = [
 outputs = model.generate(
     messages=messages,
     do_sample=False,
-    top_p=1.0,
-    temperature=1.0,
     max_new_tokens=512
 )
 
 print(outputs.text)
 ```
+
+
+### vLLM Usage
+
+See [docs/vllm_usage.md](docs/vllm_usage.md) for more details.
+
+```python
+# Register DeSTA25 model with vLLM
+import desta.vllm
+
+from vllm import LLM, SamplingParams
+import librosa
+
+AUDIO_PLACEHOLDER = "<|AUDIO|>"
+
+# Initialize vLLM
+llm = LLM(model="DeSTA-ntu/DeSTA2.5-Audio-Llama-3.1-8B", trust_remote_code=True)
+tokenizer = llm.get_tokenizer()
+
+# Load audio
+audio, sr = librosa.load("/path/to/audio.wav", sr=16000)
+
+
+messages = [
+    {"role": "system", "content": "Focus on the audio clips and instructions."},
+    {"role": "user", "content": f"{AUDIO_PLACEHOLDER}\n\nDescribe the audio."},
+]
+
+prompt = tokenizer.apply_chat_template(
+    messages,
+    tokenize=False,
+    add_generation_prompt=True,
+)
+
+# Generate text
+outputs = llm.generate(
+    [{
+        "prompt": prompt,
+        "multi_modal_data": {"audio": (audio, sr)},
+    }],
+)
+
+print(outputs[0].outputs[0].text)
+```
+
+
 
 ## 📂 Dataset
 See [docs/dataset.md](docs/dataset.md) for more details.

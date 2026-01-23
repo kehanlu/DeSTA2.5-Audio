@@ -4,25 +4,14 @@ MMAU Evaluation with DeSTA2.5-Audio using vLLM backend.
 """
 
 import argparse
-import json
-import os
-import sys
-
-# Add project root to path
-sys.path.insert(0, "/mnt/data/khlu/DeSTA2.5-Audio-vllm")
-
 import librosa
-from tqdm import tqdm
-from transformers import AutoTokenizer
 from vllm import LLM, SamplingParams
 
 # Register DeSTA25 model with vLLM
 import desta.vllm
-# from desta.vllm import print_timing_summary
 
 TARGET_SR = 16000
-# AUDIO_LOCATOR = "<|AUDIO|>"
-AUDIO_LOCATOR = "<|reserved_special_token_87|>"
+AUDIO_LOCATOR = "<|AUDIO|>"
 
 
 def parse_args():
@@ -131,7 +120,7 @@ def main(args):
     outputs = llm.generate(vllm_inputs, sampling_params=sampling_params)
 
     for vllm_input, output in zip(vllm_inputs, outputs):
-        print(tokenizer.decode(output.prompt_token_ids).replace("<|reserved_special_token_87|>"*64, "<|AUDIO|>"))
+        print(tokenizer.decode(output.prompt_token_ids).replace(AUDIO_LOCATOR*64, AUDIO_LOCATOR))
         print(f"Output: {output.outputs[0].text}")
         print("-" * 100)
 

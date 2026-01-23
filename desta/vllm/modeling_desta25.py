@@ -60,7 +60,7 @@ from desta.models.modeling_desta25 import (
 )
 from desta.vllm.asr_engine import get_asr_engine, ASREngine
 
-_AUDIO_PLACEHOLDER = "<|reserved_special_token_87|>"
+_AUDIO_PLACEHOLDER = "<|AUDIO|>"
 _DEFAULT_PROMPT_SIZE = 64
 _DEFAULT_MAX_TRANSCRIPTION_TOKENS = 128
 
@@ -130,7 +130,7 @@ class DeSTA25ProcessingInfo(BaseProcessingInfo):
 
     def get_asr_engine(self) -> ASREngine:
         """Get ASR engine (faster-whisper small for CPU, good speed/accuracy balance)."""
-        return get_asr_engine("small")
+        return get_asr_engine()
 
     def get_llm_tokenizer(self):
         """Get the LLM tokenizer (same as the main tokenizer)."""
@@ -264,10 +264,6 @@ class DeSTA25MultiModalProcessor(BaseMultiModalProcessor[DeSTA25ProcessingInfo])
 
         transcriptions = hf_processor_mm_kwargs.get("transcriptions")
 
-        placeholder_token = getattr(
-            config, "placeholder_token", "<|reserved_special_token_87|>"
-        )
-
 
         def get_replacement_desta(item_idx: int):
             
@@ -280,7 +276,7 @@ class DeSTA25MultiModalProcessor(BaseMultiModalProcessor[DeSTA25ProcessingInfo])
 
 
             return PromptUpdateDetails.select_text(
-                seq=f"<start_audio>{placeholder_token * prompt_size}{transcription}<end_audio>",
+                seq=f"<start_audio>{_AUDIO_PLACEHOLDER * prompt_size}{transcription}<end_audio>",
                 embed_text=_AUDIO_PLACEHOLDER,
             )
 
