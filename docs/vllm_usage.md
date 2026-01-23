@@ -26,9 +26,8 @@ docker run -it --rm \
   -v "${PWD}:/workspace" \
   -v "/path/to/data:/data" \
   -w /workspace \
-  -p 8000:8000 \
-  vllm/vllm-openai:latest \
-  /bin/bash
+  -p 8001:8001 --entrypoint bash \
+  vllm/vllm-openai:latest
 ```
 
 Start the interactive shell container and install the DeSTA2.5-Audio package
@@ -43,8 +42,8 @@ Note: This might not the standard usage of Docker. We don't build the DeSTA2.5-A
 ## Offline Inference
 
 see also:
-- [examples/vllm/offline_inference.py](../../examples/vllm/offline_inference.py)
-- [examples/evaluation/MMAU-v05.15.25/inference_desta25_audio_vllm.py](../../examples/evaluation/MMAU-v05.15.25/inference_desta25_audio_vllm.py)
+- [examples/vllm/offline_inference.py](examples/vllm/offline_inference.py)
+- [examples/evaluation/MMAU-v05.15.25/inference_desta25_audio_vllm.py](examples/evaluation/MMAU-v05.15.25/inference_desta25_audio_vllm.py)
 
 ```python
 # Register DeSTA25 model with vLLM
