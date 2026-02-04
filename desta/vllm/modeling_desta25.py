@@ -60,7 +60,7 @@ from desta.models.modeling_desta25 import (
 )
 from desta.vllm.asr_engine import get_asr_engine, ASREngine
 
-_AUDIO_PLACEHOLDER = "<|AUDIO|>"
+_AUDIO_PLACEHOLDER = os.getenv("AUDIO_PLACEHOLDER", "<|AUDIO|>")
 _DEFAULT_PROMPT_SIZE = 64
 _DEFAULT_MAX_TRANSCRIPTION_TOKENS = 128
 

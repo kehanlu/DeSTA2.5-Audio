@@ -15,8 +15,9 @@ from vllm import LLM, SamplingParams
 # Register DeSTA25 model with vLLM
 import desta.vllm
 
+import os
 TARGET_SR = 16000
-AUDIO_PLACEHOLDER = "<|AUDIO|>" # designed token
+AUDIO_PLACEHOLDER = os.getenv("AUDIO_PLACEHOLDER", "<|AUDIO|>") # designed token
 
 
 def parse_args():
@@ -42,7 +43,6 @@ def main(args):
     print(f"Initializing vLLM with {args.model_id}...")
     llm = LLM(
         model=args.model_id,
-        tokenizer="DeSTA-ntu/Llama-3.1-8B-Instruct",
         trust_remote_code=True,
         max_model_len=args.max_model_len,
     )
@@ -97,6 +97,7 @@ def main(args):
             messages,
             tokenize=False,
             add_generation_prompt=True,
+            enable_thinking=False
         )
 
         item["messages"] = messages
